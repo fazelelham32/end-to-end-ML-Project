@@ -1,4 +1,4 @@
-name: Run AI Project
+name: Run ML Notebook
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-project:
+  run-notebook:
 
     runs-on: ubuntu-latest
 
@@ -25,16 +25,26 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
-          fi
+          pip install jupyter nbconvert
+          pip install numpy pandas matplotlib scikit-learn scipy joblib
 
-      - name: Run Python project
+      - name: Execute Jupyter Notebook
         run: |
-          python train.py
+          jupyter nbconvert \
+            --to notebook \
+            --execute end_to_end_ML_Project.ipynb \
+            --output executed_notebook.ipynb \
+            --ExecutePreprocessor.timeout=3600
 
-      - name: Upload outputs
+      - name: Upload executed notebook
         uses: actions/upload-artifact@v4
         with:
-          name: project-results
-          path: outputs/
+          name: executed-notebook
+          path: executed_notebook.ipynb
+
+      - name: Upload generated images
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-images
+          path: images/
+          if-no-files-found: ignore
